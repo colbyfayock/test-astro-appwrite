@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "baseUrl": "/Users/colbyfayock/Code/test-astro-appwrite",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
