@@ -1,0 +1,11 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Container from '@/components/Container.astro';
+import NewPost from '@/components/NewPost.tsx';
+---
+<Layout title="Welcome to Astro.">
+	<Container>
+    <h1 class="text-2xl font-bold mb-6">New Post</h1>
+    <NewPost client:load />
+  </Container>
+</Layout>
