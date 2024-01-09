@@ -1,0 +1,117 @@
+---
+import { ID, Query } from 'appwrite';
+
+import Layout from '@/layouts/Layout.astro';
+import Container from '@/components/Container.astro';
+
+import { databases } from '@/lib/appwrite';
+
+const errors = [];
+const data: Record<string, string> = {};
+
+if (Astro.request.method === "POST") {
+  try {
+    const formData = await Astro.request.formData();
+    
+    data.title = String(formData.get("title"));
+    data.slug = String(formData.get("slug"));
+    data.content = String(formData.get("content"));
+    data.excerpt = String(formData.get("excerpt"));
+
+    const { documents } = await databases.listDocuments(
+      import.meta.env.PUBLIC_APPWRITE_DATABASE_ID,
+      import.meta.env.PUBLIC_APPWRITE_COLLECTION_ID,
+      [Query.equal('slug', data.slug)]
+    );
+
+    if ( !documents[0] ) {
+      await databases.createDocument(
+        import.meta.env.PUBLIC_APPWRITE_DATABASE_ID,
+        import.meta.env.PUBLIC_APPWRITE_COLLECTION_ID,
+        ID.unique(),
+        data
+      );
+      return Astro.redirect(`/posts/${results.slug}`);
+    } else {
+      errors.push('Oops, that slug already exists!')
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      errors.push(error.message)
+    }
+  }
+}
+---
+<Layout title="Welcome to Astro.">
+	<Container>
+    <h1 class="text-2xl font-bold mb-6">New Post</h1>
+    { errors.map(error => {
+      return <p class="bg-red-100 text-red-600 px-3 py-2 rounded mb-6">{ error }</p>
+    })}
+    <form method="POST">
+      <div class="mb-6">
+        <label class="block text-sm font-semibold mb-3" for="title">Title</label>
+        <input
+          id="title"
+          class="block w-full text-slate-900 border-slate-400 rounded focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          type="text"
+          name="title"
+          value={data.title}
+        />
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-semibold mb-3" for="slug">Slug</label>
+        <input
+          id="slug"
+          class="block w-full text-slate-900 border-slate-400 rounded focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          type="text"
+          name="slug"
+          value={data.slug}
+        />
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-semibold mb-3" for="content">Content</label>
+        <textarea
+          id="content"
+          class="block w-full min-h-80 text-slate-900 border-slate-400 rounded focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          name="content"
+        >{ data.content}</textarea>
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-semibold mb-3" for="excerpt">Excerpt</label>
+        <input
+          id="excerpt"
+          class="block w-full text-slate-900 border-slate-400 rounded focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          type="text"
+          name="excerpt"
+          value={data.excerpt}
+        />
+      </div>
+      <button class="inline-block rounded py-2.5 px-6 text-sm font-bold uppercase text-white bg-slate-600 hover:bg-slate-500 dark:bg-slate-500 dark:hover:bg-slate-400">Submit</button>
+    </form>
+  </Container>
+</Layout>
+
+<script>
+import slugify from 'slugify';
+
+const title = document.getElementById('title') as HTMLInputElement;
+const slug = document.getElementById('slug') as HTMLInputElement;
+
+function handleOnTitleBlur(event: FocusEvent) {
+  const target = event.target as typeof event.target & {
+    value: string;
+  };
+  
+  const value = target.value;
+
+  if ( value && !slug?.value ) {
+    slug.value = slugify(value, {
+      lower: true,
+      strict: true
+    })
+  }
+}
+
+title?.addEventListener('blur', handleOnTitleBlur);
+</script>
