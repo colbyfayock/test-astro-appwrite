@@ -1,5 +1,6 @@
 ---
 import { ID, Query } from 'appwrite';
+import { marked } from 'marked';
 
 import Layout from '@/layouts/Layout.astro';
 import Container from '@/components/Container.astro';
@@ -12,11 +13,11 @@ const data: Record<string, string> = {};
 if (Astro.request.method === "POST") {
   try {
     const formData = await Astro.request.formData();
-    
-    data.title = String(formData.get("title"));
-    data.slug = String(formData.get("slug"));
-    data.content = String(formData.get("content"));
-    data.excerpt = String(formData.get("excerpt"));
+
+    data.title = String(formData.get('title'));
+    data.slug = String(formData.get('slug'));
+    data.content = await marked(String(formData.get('content')));
+    data.excerpt = String(formData.get('excerpt'));
 
     const { documents } = await databases.listDocuments(
       import.meta.env.PUBLIC_APPWRITE_DATABASE_ID,
